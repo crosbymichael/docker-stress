@@ -1,3 +1,4 @@
 [
-    {"name":"busybox", "args": ["true"]}
+    {"name":"busybox", "args": ["true"]},
+    {"name":"debian:jessie", "args": ["true"]}
 ]

@@ -15,6 +15,8 @@ var (
 	concurrent int
 	duration   time.Duration
 	killTime   time.Duration
+
+	counter int
 )
 
 type Image struct {
@@ -34,6 +36,8 @@ func init() {
 }
 
 func run(i *Image) {
+	counter++
+
 	p := "-P=false"
 	if i.Publish {
 		p = "-P=true"
@@ -94,6 +98,7 @@ func main() {
 	var (
 		c     = make(chan *Image, concurrent)
 		group = &sync.WaitGroup{}
+		start = time.Now()
 	)
 
 	images, err := loadImages()
@@ -109,4 +114,8 @@ func main() {
 	go process(images, c)
 
 	group.Wait()
+
+	secounds := time.Now().Sub(start).Seconds()
+
+	log.Printf("ran %d containers in %f seconds (%f per sec.)\n", counter, secounds, float64(counter)/secounds)
 }
