@@ -15,6 +15,7 @@ var (
 	concurrent int
 	duration   time.Duration
 	killTime   time.Duration
+	binary     string
 
 	counter int
 )
@@ -32,6 +33,8 @@ func init() {
 	flag.DurationVar(&duration, "duration", 10*time.Minute, "duration to run the tests")
 	flag.DurationVar(&killTime, "kill", 10*time.Second, "time to kill a container after")
 
+	flag.StringVar(&binary, "binary", "docker", "path to docker binary")
+
 	flag.Parse()
 }
 
@@ -43,7 +46,7 @@ func run(i *Image) {
 		p = "-P=true"
 	}
 
-	cmd := exec.Command("docker", append([]string{"run", p, "--rm", i.Name}, i.Args...)...)
+	cmd := exec.Command(binary, append([]string{"run", p, "--rm", i.Name}, i.Args...)...)
 	if i.Kill {
 		go func() {
 			<-time.After(killTime)
