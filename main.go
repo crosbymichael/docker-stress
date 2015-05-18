@@ -58,9 +58,6 @@ func (w *worker) run(i *Image) {
 			if err := cmd.Process.Signal(syscall.SIGTERM); err != nil {
 				logrus.Error(err)
 			}
-			if err := cmd.Wait(); err != nil {
-				logrus.Error(err)
-			}
 		}()
 	}
 	out, err := cmd.CombinedOutput()
@@ -124,8 +121,8 @@ func main() {
 		go process(images, c, context.GlobalInt("containers"))
 		group.Wait()
 		secounds := time.Now().Sub(start).Seconds()
-		logrus.Infof("ran %d containers in %f seconds (%f per sec.)\n", counter, secounds, float64(counter)/secounds)
-		logrus.Infof("failures %d\n", failCount)
+		logrus.Infof("ran %d containers in %f seconds (%f per sec.)", counter, secounds, float64(counter)/secounds)
+		logrus.Infof("failures %d", failCount)
 	}
 	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)
