@@ -1,4 +1,4 @@
 [
     {"name":"busybox", "args": ["true"]},
-    {"name":"debian:jessie", "args": ["true"]}
+    {"name":"busybox", "args": ["ping", "-c", "5", "google.com"]}
 ]
