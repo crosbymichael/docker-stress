@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -19,6 +20,7 @@ var (
 
 type Image struct {
 	Name    string   `json:"name"`
+	Flags   []string `json:"flags"`
 	Args    []string `json:"args"`
 	Publish bool     `json:"publish"`
 	Kill    bool     `json:"kill"`
@@ -51,7 +53,22 @@ func (w *worker) run(i *Image) {
 	if i.Publish {
 		p = "-P=true"
 	}
-	cmd := exec.Command(w.binary, append([]string{"run", p, "--rm", i.Name}, i.Args...)...)
+
+	command := []string{"run", p, "--rm"}
+	if len(i.Flags) > 0 {
+		flags := []string{}
+
+		for _, f := range i.Flags {
+			if f != "--rm" && !strings.HasPrefix(f, "-P") && !strings.HasPrefix(f, "--publish") {
+				flags = append(flags, f)
+			}
+		}
+
+		command = append(command, flags...)
+	}
+	command = append(command, i.Name)
+	command = append(command, i.Args...)
+	cmd := exec.Command(w.binary, command...)
 	if i.Kill {
 		go func() {
 			<-time.After(w.killTime)
