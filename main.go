@@ -14,8 +14,9 @@ import (
 )
 
 var (
-	counter   int
-	failCount int
+	counter  int
+	failures int
+	mutex    = &sync.Mutex{}
 )
 
 type Image struct {
@@ -48,7 +49,9 @@ func (w *worker) start(c chan *Image) {
 }
 
 func (w *worker) run(i *Image) {
+	mutex.Lock()
 	counter++
+	mutex.Unlock()
 	p := "-P=false"
 	if i.Publish {
 		p = "-P=true"
@@ -79,7 +82,9 @@ func (w *worker) run(i *Image) {
 	}
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		failCount++
+		mutex.Lock()
+		failures++
+		mutex.Unlock()
 		logrus.WithField("error", err).Errorf("%s", out)
 	}
 }
@@ -99,7 +104,10 @@ func loadImages(path string) ([]*Image, error) {
 
 func process(images []*Image, c chan *Image, max int) {
 	for {
-		if counter > max {
+		mutex.Lock()
+		completed := counter > max
+		mutex.Unlock()
+		if completed {
 			close(c)
 			return
 		}
@@ -137,9 +145,9 @@ func main() {
 		}
 		go process(images, c, context.GlobalInt("containers"))
 		group.Wait()
-		secounds := time.Now().Sub(start).Seconds()
-		logrus.Infof("ran %d containers in %f seconds (%f per sec.)", counter, secounds, float64(counter)/secounds)
-		logrus.Infof("failures %d", failCount)
+		seconds := time.Now().Sub(start).Seconds()
+		logrus.Infof("ran %d containers in %f seconds (%f per sec.)", counter, seconds, float64(counter)/seconds)
+		logrus.Infof("failures %d", failures)
 	}
 	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)
