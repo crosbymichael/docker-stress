@@ -146,7 +146,7 @@ func main() {
 		go process(images, c, context.GlobalInt("containers"))
 		group.Wait()
 		seconds := time.Now().Sub(start).Seconds()
-		logrus.Infof("ran %d containers in %f seconds (%f per sec.)", counter, seconds, float64(counter)/seconds)
+		logrus.Infof("ran %d containers in %0.2f seconds (%0.2f container per sec. or %0.2f sec. per container)", counter, seconds, float64(counter)/seconds, seconds/float64(counter))
 		logrus.Infof("failures %d", failures)
 	}
 	if err := app.Run(os.Args); err != nil {
